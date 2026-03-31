@@ -279,17 +279,37 @@ export default function Home() {
         {/* Results */}
         {data && (
           <div className="mt-2 space-y-4">
-            {data.cheapest && (
-              <div className="rounded-lg bg-green-50 border border-green-200 p-4">
-                <p className="text-sm font-medium text-green-800">
-                  Cheapest {fuelType} near {data.location}:{" "}
-                  <span className="font-bold">
-                    {data.cheapest.price.toFixed(1)}p
-                  </span>{" "}
-                  at {data.cheapest.brand} ({data.cheapest.name})
-                </p>
-              </div>
-            )}
+            {data.cheapest && (() => {
+              const prices = data.results
+                .map((s: StationResult) => s.price)
+                .filter((p: number | null): p is number => p !== null);
+              const mostExpensive = prices.length > 1 ? Math.max(...prices) : null;
+              const saving = mostExpensive !== null
+                ? ((mostExpensive - data.cheapest.price) * 50) / 100
+                : null;
+
+              return (
+                <div className="rounded-lg bg-green-50 border border-green-200 p-4">
+                  <p className="text-sm font-medium text-green-800">
+                    Cheapest {fuelType} near {data.location}:{" "}
+                    <span className="font-bold">
+                      {data.cheapest.price.toFixed(1)}p
+                    </span>{" "}
+                    at {data.cheapest.brand} ({data.cheapest.name})
+                  </p>
+                  {saving !== null && saving > 0 && (
+                    <>
+                      <p className="mt-1 text-xs text-green-700">
+                        Save ~£{saving.toFixed(saving >= 1 ? 2 : 2)} per tank vs the most expensive nearby
+                      </p>
+                      <p className="mt-0.5 text-xs text-green-600/60">
+                        Based on a 50L tank
+                      </p>
+                    </>
+                  )}
+                </div>
+              );
+            })()}
 
             <p className="text-sm text-gray-500">
               {data.count} station{data.count !== 1 ? "s" : ""} found near{" "}
