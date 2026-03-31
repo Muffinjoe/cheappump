@@ -114,7 +114,8 @@ async function main() {
       lng: s.location.longitude,
       p: (priceMap.get(s.node_id) || []).map((fp) => ({
         t: fp.fuel_type,
-        p: fp.price,
+        // Some stations report in pounds (e.g. 1.309) instead of pence (130.9)
+        p: fp.price < 10 ? Math.round(fp.price * 1000) / 10 : fp.price,
         u: fp.price_last_updated || "",
       })),
     }));
