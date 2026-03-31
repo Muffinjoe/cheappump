@@ -300,7 +300,7 @@ export default function Home() {
         {/* Results */}
         {data && (
           <div className="mt-2 space-y-4">
-            {data.cheapest && (() => {
+            {data.cheapest && sort === "price" && (() => {
               const prices = data.results
                 .map((s: StationResult) => s.price)
                 .filter((p: number | null): p is number => p !== null);
