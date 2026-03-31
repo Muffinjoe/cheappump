@@ -2,6 +2,31 @@
 
 import { StationResult } from "@/lib/fuel-api";
 
+const BRAND_STYLES: Record<string, { bg: string; text: string; label: string }> = {
+  bp:          { bg: "bg-[#009900]", text: "text-white",    label: "BP" },
+  shell:       { bg: "bg-[#FFD500]", text: "text-[#E3000F]", label: "Shell" },
+  esso:        { bg: "bg-[#1B3D8E]", text: "text-white",    label: "Esso" },
+  tesco:       { bg: "bg-[#EE1C2E]", text: "text-white",    label: "Tesco" },
+  asda:        { bg: "bg-[#78BE20]", text: "text-white",    label: "Asda" },
+  sainsbury:   { bg: "bg-[#F06C00]", text: "text-white",    label: "Sainsbury's" },
+  morrisons:   { bg: "bg-[#007A3D]", text: "text-[#FFD700]", label: "Morrisons" },
+  jet:         { bg: "bg-[#FFD700]", text: "text-black",    label: "Jet" },
+  texaco:      { bg: "bg-[#E30613]", text: "text-white",    label: "Texaco" },
+  gulf:        { bg: "bg-[#EE7623]", text: "text-[#002F5F]", label: "Gulf" },
+  murco:       { bg: "bg-[#003399]", text: "text-[#FFD700]", label: "Murco" },
+  "co-op":     { bg: "bg-[#00B0E8]", text: "text-white",    label: "Co-op" },
+  costco:      { bg: "bg-[#E31837]", text: "text-white",    label: "Costco" },
+  applegreen:  { bg: "bg-[#78BE20]", text: "text-white",    label: "Apple" },
+};
+
+function getBrandStyle(brand: string) {
+  const lower = brand.toLowerCase();
+  for (const [key, style] of Object.entries(BRAND_STYLES)) {
+    if (lower.includes(key)) return style;
+  }
+  return { bg: "bg-gray-500", text: "text-white", label: brand.slice(0, 3).toUpperCase() };
+}
+
 export function StationCard({
   station,
   isCheapest,
@@ -17,6 +42,8 @@ export function StationCard({
     station.address || `${station.lat},${station.lng}`
   )}`;
 
+  const brandStyle = getBrandStyle(station.brand);
+
   return (
     <div
       className={`relative rounded-lg border p-4 transition-shadow hover:shadow-md ${
@@ -31,14 +58,21 @@ export function StationCard({
         </span>
       )}
 
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start gap-3">
+        {/* Brand badge */}
+        <div
+          className={`shrink-0 flex items-center justify-center w-11 h-11 rounded-lg font-bold text-xs ${brandStyle.bg} ${brandStyle.text}`}
+        >
+          {brandStyle.label}
+        </div>
+
         <div className="min-w-0 flex-1">
           <h3 className="font-semibold text-gray-900 truncate">{station.name}</h3>
           <p className="text-sm text-gray-500">{station.brand}</p>
           {station.address && (
-            <p className="mt-1 text-sm text-gray-600 truncate">{station.address}</p>
+            <p className="mt-0.5 text-sm text-gray-600 truncate">{station.address}</p>
           )}
-          <div className="mt-2 flex items-center gap-3 text-xs text-gray-400">
+          <div className="mt-1.5 flex items-center gap-3 text-xs text-gray-400">
             {station.distanceMiles !== null && (
               <span>{station.distanceMiles} miles away</span>
             )}
