@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import { StationCard } from "@/components/StationCard";
 import { StationResult } from "@/lib/fuel-api";
 
@@ -32,6 +32,24 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<SearchResults | null>(null);
   const [geoLoading, setGeoLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  // Load search from URL params (for shared links)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const loc = params.get("location");
+    if (loc) {
+      const fuel = (params.get("fuel") as "petrol" | "diesel") || "petrol";
+      const br = params.get("brand") || "all";
+      const s = (params.get("sort") as "price" | "distance") || "price";
+      setLocation(loc);
+      setFuelType(fuel);
+      setBrand(br);
+      setSort(s);
+      doSearch(loc, fuel, br, s);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function doSearch(
     loc: string,
@@ -60,6 +78,9 @@ export default function Home() {
       } else {
         setData(json);
         setError(null);
+        // Update URL for sharing
+        const shareParams = new URLSearchParams({ location: loc.trim(), fuel, brand: br, sort: s });
+        window.history.replaceState(null, "", `?${shareParams}`);
       }
     } catch {
       setError("Failed to search. Please check your connection and try again.");
@@ -311,10 +332,37 @@ export default function Home() {
               );
             })()}
 
-            <p className="text-sm text-gray-500">
-              {data.count} station{data.count !== 1 ? "s" : ""} found near{" "}
-              {data.location}
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-500">
+                {data.count} station{data.count !== 1 ? "s" : ""} found near{" "}
+                {data.location}
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  const url = window.location.href;
+                  if (navigator.share) {
+                    navigator.share({
+                      title: `Cheapest ${fuelType} near ${data.location}`,
+                      text: data.cheapest
+                        ? `Cheapest ${fuelType} near ${data.location}: ${data.cheapest.price.toFixed(1)}p at ${data.cheapest.brand}`
+                        : `Fuel prices near ${data.location}`,
+                      url,
+                    }).catch(() => {});
+                  } else {
+                    navigator.clipboard.writeText(url);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                  }
+                }}
+                className="flex items-center gap-1 text-sm text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0-12.814a2.25 2.25 0 1 0 0-2.186m0 2.186a2.25 2.25 0 1 0 0 2.186m0-2.186c-.18.324-.283.696-.283 1.093s.103.77.283 1.093" />
+                </svg>
+                {copied ? "Link copied!" : "Share"}
+              </button>
+            </div>
 
             <div className="space-y-3">
               {data.results.map((station: StationResult, i: number) => (
