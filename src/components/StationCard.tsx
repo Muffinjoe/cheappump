@@ -76,15 +76,15 @@ export function StationCard({
             {station.distanceMiles !== null && (
               <span>{station.distanceMiles} miles away</span>
             )}
-            {station.updatedAt && (
-              <span>
-                Updated{" "}
-                {new Date(station.updatedAt).toLocaleDateString("en-GB", {
-                  day: "numeric",
-                  month: "short",
-                })}
-              </span>
-            )}
+            {station.updatedAt && (() => {
+              const days = Math.floor((Date.now() - new Date(station.updatedAt).getTime()) / 86400000);
+              if (days < 3) return null;
+              return (
+                <span className="text-amber-500">
+                  Price updated {days} days ago
+                </span>
+              );
+            })()}
           </div>
         </div>
 
