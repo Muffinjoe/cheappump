@@ -131,11 +131,13 @@ export default function Home() {
       {/* Header */}
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-center gap-2">
-          <img src="/fuel-pump.png" alt="" className="h-6 w-6" />
-          <h1 className="text-xl font-bold text-gray-900">
-            Cheap<span className="text-green-600">Pump</span>
-            <span className="text-sm font-normal text-gray-400 ml-1">.co.uk</span>
-          </h1>
+          <a href="/" className="flex items-center gap-2">
+            <img src="/fuel-pump.png" alt="" className="h-6 w-6" />
+            <h1 className="text-xl font-bold text-gray-900">
+              Cheap<span className="text-green-600">Pump</span>
+              <span className="text-sm font-normal text-gray-400 ml-1">.co.uk</span>
+            </h1>
+          </a>
         </div>
       </header>
 
