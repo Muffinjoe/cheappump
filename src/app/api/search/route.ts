@@ -66,8 +66,8 @@ export async function GET(request: NextRequest) {
       const distance = getDistanceMiles(
         geo.lat,
         geo.lng,
-        station.location.latitude,
-        station.location.longitude
+        station.lat,
+        station.lng
       );
 
       return {
@@ -75,8 +75,8 @@ export async function GET(request: NextRequest) {
         name: station.name,
         brand: station.brand,
         address: [station.address, station.postcode].filter(Boolean).join(", "),
-        lat: station.location.latitude,
-        lng: station.location.longitude,
+        lat: station.lat,
+        lng: station.lng,
         price: bestPrice ? bestPrice.price : null,
         fuelType: bestPrice ? bestPrice.fuel_type : fuelType,
         updatedAt: bestPrice?.updated_at || null,
