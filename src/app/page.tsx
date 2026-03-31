@@ -146,7 +146,7 @@ export default function Home() {
               Find the cheapest fuel near you
             </h2>
             <p className="mt-2 text-lg text-gray-500">
-              Compare petrol and diesel prices nearby in seconds.
+              Compare petrol and diesel prices across the UK in seconds.
             </p>
             <p className="mt-1 text-sm text-gray-400">
               Stop overpaying at the pump.
