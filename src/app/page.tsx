@@ -189,7 +189,7 @@ export default function Home() {
                 type="text"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                placeholder="Enter postcode or town (e.g. SW1A 1AA)"
+                placeholder="Enter full postcode (e.g. SW1A 1AA)"
                 className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
               />
               <button

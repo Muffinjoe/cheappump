@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
   const geo = await geocodeLocation(location);
   if (!geo) {
     return NextResponse.json(
-      { error: "Could not find that location. Try a UK postcode like SW1A 1AA." },
+      { error: "Please enter a full UK postcode (e.g. SW1A 1AA). Partial postcodes won't work." },
       { status: 400 }
     );
   }
