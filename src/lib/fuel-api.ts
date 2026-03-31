@@ -12,8 +12,12 @@
 
 import { getDistanceMiles } from "./distance";
 
-const BASE_URL = process.env.GOV_FUEL_API_URL || "https://www.developer.fuel-finder.service.gov.uk";
-const TOKEN_URL = process.env.GOV_FUEL_TOKEN_URL || `${BASE_URL}/api/v1/oauth/generate_access_token`;
+const BASE_URL =
+  process.env.GOV_FUEL_API_URL ||
+  "https://www.developer.fuel-finder.service.gov.uk";
+const TOKEN_URL =
+  process.env.GOV_FUEL_TOKEN_URL ||
+  `${BASE_URL}/api/v1/oauth/generate_access_token`;
 
 let cachedToken: { token: string; expiresAt: number } | null = null;
 
@@ -65,6 +69,8 @@ interface APIStation {
   node_id: string;
   trading_name: string;
   brand_name: string;
+  temporary_closure: boolean;
+  permanent_closure: boolean | null;
   location: {
     address_line_1: string;
     address_line_2: string;
@@ -74,23 +80,22 @@ interface APIStation {
     latitude: number;
     longitude: number;
   };
-  fuel_types: string[];
-  temporary_closure: boolean;
-  permanent_closure: boolean | null;
 }
 
-interface APIPrice {
+interface APIPriceEntry {
+  fuel_type: string;
+  price: number;
+  price_last_updated: string;
+}
+
+interface APIPriceStation {
   node_id: string;
-  fuel_prices: Array<{
-    fuel_type: string;
-    price: number;
-    price_last_updated: string;
-  }>;
+  fuel_prices: APIPriceEntry[];
 }
 
 export interface FuelPrice {
   fuel_type: string;
-  price: number; // pence per litre
+  price: number;
   updated_at: string;
 }
 
@@ -103,7 +108,6 @@ export interface FuelStation {
   lat: number;
   lng: number;
   prices: FuelPrice[];
-  closed: boolean;
 }
 
 export interface StationResult {
@@ -132,8 +136,13 @@ export function matchesFuelType(
   return patterns.some((p) => upper.includes(p));
 }
 
-async function apiGet(path: string): Promise<unknown> {
-  const token = await getAccessToken();
+/**
+ * Fetch a single batch with a pre-obtained token.
+ */
+async function fetchBatch(
+  path: string,
+  token: string
+): Promise<unknown[]> {
   const res = await fetch(`${BASE_URL}${path}`, {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -142,15 +151,17 @@ async function apiGet(path: string): Promise<unknown> {
   });
 
   if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`API ${path} failed (${res.status}): ${text.slice(0, 200)}`);
+    console.error(`API ${path} returned ${res.status}`);
+    return [];
   }
 
-  return res.json();
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
 }
 
 /**
  * Fetch all stations and prices across all batches.
+ * Uses sequential groups of 8 to stay within rate limits.
  * Caches for 15 minutes.
  */
 async function fetchAllData(): Promise<FuelStation[]> {
@@ -158,28 +169,42 @@ async function fetchAllData(): Promise<FuelStation[]> {
     return dataCache.stations;
   }
 
-  // Fetch all batches of stations and prices in parallel
+  // Get token once upfront
+  const token = await getAccessToken();
+
   const batchNumbers = Array.from({ length: 16 }, (_, i) => i + 1);
 
-  const [stationBatches, priceBatches] = await Promise.all([
-    Promise.all(
-      batchNumbers.map((n) =>
-        apiGet(`/api/v1/pfs?batch-number=${n}`)
-          .then((data) => (Array.isArray(data) ? data : []) as APIStation[])
-          .catch(() => [] as APIStation[])
+  // Fetch stations in 2 waves of 8 to stay under 30 RPM
+  const allStations: APIStation[] = [];
+  for (let i = 0; i < batchNumbers.length; i += 8) {
+    const chunk = batchNumbers.slice(i, i + 8);
+    const results = await Promise.all(
+      chunk.map((n) =>
+        fetchBatch(`/api/v1/pfs?batch-number=${n}`, token)
       )
-    ),
-    Promise.all(
-      batchNumbers.map((n) =>
-        apiGet(`/api/v1/pfs/fuel-prices?batch-number=${n}`)
-          .then((data) => (Array.isArray(data) ? data : []) as APIPrice[])
-          .catch(() => [] as APIPrice[])
-      )
-    ),
-  ]);
+    );
+    for (const batch of results) {
+      allStations.push(...(batch as APIStation[]));
+    }
+  }
 
-  const allStations = stationBatches.flat();
-  const allPrices = priceBatches.flat();
+  console.log(`Fetched ${allStations.length} stations`);
+
+  // Fetch prices in 2 waves of 8
+  const allPrices: APIPriceStation[] = [];
+  for (let i = 0; i < batchNumbers.length; i += 8) {
+    const chunk = batchNumbers.slice(i, i + 8);
+    const results = await Promise.all(
+      chunk.map((n) =>
+        fetchBatch(`/api/v1/pfs/fuel-prices?batch-number=${n}`, token)
+      )
+    );
+    for (const batch of results) {
+      allPrices.push(...(batch as APIPriceStation[]));
+    }
+  }
+
+  console.log(`Fetched ${allPrices.length} price entries`);
 
   // Build price lookup by node_id
   const priceMap = new Map<string, FuelPrice[]>();
@@ -198,8 +223,14 @@ async function fetchAllData(): Promise<FuelStation[]> {
 
   // Merge stations + prices
   const stations: FuelStation[] = allStations
-    .filter((s) => s.node_id && s.location?.latitude && s.location?.longitude)
-    .filter((s) => !s.temporary_closure && !s.permanent_closure)
+    .filter(
+      (s) =>
+        s.node_id &&
+        s.location?.latitude &&
+        s.location?.longitude &&
+        !s.temporary_closure &&
+        !s.permanent_closure
+    )
     .map((s) => {
       const addr = [
         s.location.address_line_1,
@@ -219,7 +250,6 @@ async function fetchAllData(): Promise<FuelStation[]> {
         lat: s.location.latitude,
         lng: s.location.longitude,
         prices: priceMap.get(s.node_id) || [],
-        closed: false,
       };
     });
 

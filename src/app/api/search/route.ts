@@ -3,6 +3,9 @@ import { geocodeLocation } from "@/lib/geocode";
 import { fetchNearbyStations, matchesFuelType, StationResult } from "@/lib/fuel-api";
 import { getDistanceMiles } from "@/lib/distance";
 
+// Allow up to 30s for cold start (fetches ~7500 stations from 32 API calls)
+export const maxDuration = 30;
+
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const location = searchParams.get("location");
