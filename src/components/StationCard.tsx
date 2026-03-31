@@ -8,15 +8,15 @@ const BRAND_STYLES: Record<string, { bg: string; text: string; label: string }> 
   esso:        { bg: "bg-[#1B3D8E]", text: "text-white",    label: "Esso" },
   tesco:       { bg: "bg-[#EE1C2E]", text: "text-white",    label: "Tesco" },
   asda:        { bg: "bg-[#78BE20]", text: "text-white",    label: "Asda" },
-  sainsbury:   { bg: "bg-[#F06C00]", text: "text-white",    label: "Sainsbury's" },
-  morrisons:   { bg: "bg-[#007A3D]", text: "text-[#FFD700]", label: "Morrisons" },
+  sainsbury:   { bg: "bg-[#F06C00]", text: "text-white",    label: "S's" },
+  morrisons:   { bg: "bg-[#007A3D]", text: "text-[#FFD700]", label: "M" },
   jet:         { bg: "bg-[#FFD700]", text: "text-black",    label: "Jet" },
-  texaco:      { bg: "bg-[#E30613]", text: "text-white",    label: "Texaco" },
+  texaco:      { bg: "bg-[#E30613]", text: "text-white",    label: "T" },
   gulf:        { bg: "bg-[#EE7623]", text: "text-[#002F5F]", label: "Gulf" },
   murco:       { bg: "bg-[#003399]", text: "text-[#FFD700]", label: "Murco" },
   "co-op":     { bg: "bg-[#00B0E8]", text: "text-white",    label: "Co-op" },
-  costco:      { bg: "bg-[#E31837]", text: "text-white",    label: "Costco" },
-  applegreen:  { bg: "bg-[#78BE20]", text: "text-white",    label: "Apple" },
+  costco:      { bg: "bg-[#E31837]", text: "text-white",    label: "CC" },
+  applegreen:  { bg: "bg-[#78BE20]", text: "text-white",    label: "AG" },
 };
 
 function getBrandStyle(brand: string) {
@@ -61,7 +61,7 @@ export function StationCard({
       <div className="flex items-start gap-3">
         {/* Brand badge */}
         <div
-          className={`shrink-0 flex items-center justify-center w-11 h-11 rounded-lg font-bold text-xs ${brandStyle.bg} ${brandStyle.text}`}
+          className={`shrink-0 flex items-center justify-center w-11 h-11 rounded-lg font-bold text-xs overflow-hidden ${brandStyle.bg} ${brandStyle.text}`}
         >
           {brandStyle.label}
         </div>
