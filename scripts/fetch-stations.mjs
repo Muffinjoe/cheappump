@@ -100,7 +100,9 @@ async function main() {
         s.location?.latitude &&
         s.location?.longitude &&
         !s.temporary_closure &&
-        !s.permanent_closure
+        !s.permanent_closure &&
+        // Filter out test/pre-production stations
+        !s.trading_name?.toLowerCase().includes("pre prod")
     )
     .map((s) => ({
       id: s.node_id,
@@ -124,7 +126,9 @@ async function main() {
           // Some stations report in pounds (e.g. 1.309) instead of pence (130.9)
           p: fp.price < 10 ? Math.round(fp.price * 1000) / 10 : fp.price,
           u: fp.price_last_updated || "",
-        })),
+        }))
+        // Drop prices outside sane range (100-250p per litre)
+        .filter((fp) => fp.p >= 100 && fp.p <= 250),
     }));
 
   const output = {
