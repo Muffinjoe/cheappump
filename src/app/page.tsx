@@ -319,16 +319,16 @@ export default function Home() {
 
         <footer className="mt-12 border-t border-gray-200 pt-6 pb-8 text-center text-xs text-gray-400">
           <p>
-            CheapPump.co.uk — Fuel price data from the{" "}
+            CheapPump.co.uk — Data from the{" "}
             <a
               href="https://www.gov.uk"
               className="underline hover:text-gray-600"
               target="_blank"
               rel="noopener noreferrer"
             >
-              UK Government Fuel Finder API
+              UK Government fuel price service
             </a>
-            . Prices may not reflect real-time changes.
+            . Prices may be slightly delayed.
           </p>
         </footer>
       </main>
