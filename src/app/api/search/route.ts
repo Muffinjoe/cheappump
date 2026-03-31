@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { geocodeLocation } from "@/lib/geocode";
-import { fetchNearbyStations, matchesFuelType, StationResult } from "@/lib/fuel-api";
+import { fetchNearbyStations, matchesFuelType, getDataTimestamp, StationResult } from "@/lib/fuel-api";
 import { getDistanceMiles } from "@/lib/distance";
-
-// Allow up to 30s for cold start (fetches ~7500 stations from 32 API calls)
-export const maxDuration = 30;
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -123,5 +120,6 @@ export async function GET(request: NextRequest) {
       : null,
     results,
     count: results.length,
+    dataUpdated: getDataTimestamp(),
   });
 }

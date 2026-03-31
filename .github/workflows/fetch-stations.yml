@@ -1,0 +1,31 @@
+name: Fetch Station Data
+
+on:
+  schedule:
+    # Run daily at 6am UTC
+    - cron: "0 6 * * *"
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Fetch station data
+        env:
+          GOV_FUEL_CLIENT_ID: ${{ secrets.GOV_FUEL_CLIENT_ID }}
+          GOV_FUEL_CLIENT_SECRET: ${{ secrets.GOV_FUEL_CLIENT_SECRET }}
+        run: node scripts/fetch-stations.mjs
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/data/stations.json
+          git diff --staged --quiet || git commit -m "Update fuel station data $(date -u +%Y-%m-%d)"
+          git push
