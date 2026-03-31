@@ -112,12 +112,19 @@ async function main() {
       pc: s.location.postcode,
       lat: s.location.latitude,
       lng: s.location.longitude,
-      p: (priceMap.get(s.node_id) || []).map((fp) => ({
-        t: fp.fuel_type,
-        // Some stations report in pounds (e.g. 1.309) instead of pence (130.9)
-        p: fp.price < 10 ? Math.round(fp.price * 1000) / 10 : fp.price,
-        u: fp.price_last_updated || "",
-      })),
+      p: (priceMap.get(s.node_id) || [])
+        // Drop prices older than 14 days - likely stale/unreliable
+        .filter((fp) => {
+          if (!fp.price_last_updated) return false;
+          const age = Date.now() - new Date(fp.price_last_updated).getTime();
+          return age < 14 * 24 * 60 * 60 * 1000;
+        })
+        .map((fp) => ({
+          t: fp.fuel_type,
+          // Some stations report in pounds (e.g. 1.309) instead of pence (130.9)
+          p: fp.price < 10 ? Math.round(fp.price * 1000) / 10 : fp.price,
+          u: fp.price_last_updated || "",
+        })),
     }));
 
   const output = {
