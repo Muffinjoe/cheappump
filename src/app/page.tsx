@@ -152,7 +152,7 @@ export default function Home() {
               Compare petrol and diesel prices across the UK in seconds.
             </p>
             <p className="mt-1 text-sm text-gray-400">
-              Stop overpaying at the pump.
+              Stop getting rinsed at the pump.
             </p>
           </div>
         )}
@@ -182,7 +182,7 @@ export default function Home() {
                     <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" className="opacity-75" />
                   </svg>
                 ) : (
-                  "Search"
+                  "Find cheapest"
                 )}
               </button>
             </div>
